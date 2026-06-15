@@ -1,0 +1,1361 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>6 أدلة أساسية لفهم كيف تعمل نماذج اللغة الكبيرة</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --surface-2: #21262d;
+      --border: #30363d;
+      --text: #e6edf3;
+      --text-2: #8b949e;
+      --text-3: #6e7681;
+      --accent: #58a6ff;
+      --accent-2: #388bfd;
+      --green: #3fb950;
+      --orange: #d29922;
+      --purple: #bc8cff;
+      --red: #f85149;
+      --code-bg: #0d1117;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      font-size: 15px;
+    }
+
+    .hero {
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 40px 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 40% at 50% 0%, rgba(88,166,255,0.12) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 30% at 20% 80%, rgba(188,140,255,0.07) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(88,166,255,0.1);
+      border: 1px solid rgba(88,166,255,0.25);
+      border-radius: 100px;
+      padding: 6px 16px;
+      font-size: 13px;
+      color: var(--accent);
+      margin-bottom: 28px;
+      font-weight: 500;
+    }
+
+    .hero-badge .dot {
+      width: 6px; height: 6px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .hero h1 {
+      font-size: clamp(28px, 5vw, 52px);
+      font-weight: 800;
+      line-height: 1.15;
+      max-width: 800px;
+      margin-bottom: 20px;
+      background: linear-gradient(135deg, #e6edf3 0%, #8b949e 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero h1 span {
+      background: linear-gradient(135deg, var(--accent) 0%, var(--purple) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+    }
+
+    .hero p {
+      font-size: 17px;
+      color: var(--text-2);
+      max-width: 560px;
+      margin-bottom: 40px;
+    }
+
+    .hero-toc {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+      max-width: 800px;
+      width: 100%;
+    }
+
+    .toc-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 18px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      text-decoration: none;
+      color: var(--text);
+      transition: all 0.2s;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .toc-item:hover {
+      border-color: var(--accent);
+      background: rgba(88,166,255,0.05);
+      transform: translateY(-2px);
+    }
+
+    .toc-num {
+      width: 28px; height: 28px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .toc-item:nth-child(1) .toc-num { background: rgba(63,185,80,0.15); color: var(--green); }
+    .toc-item:nth-child(2) .toc-num { background: rgba(210,153,34,0.15); color: var(--orange); }
+    .toc-item:nth-child(3) .toc-num { background: rgba(88,166,255,0.15); color: var(--accent); }
+    .toc-item:nth-child(4) .toc-num { background: rgba(188,140,255,0.15); color: var(--purple); }
+    .toc-item:nth-child(5) .toc-num { background: rgba(248,81,73,0.15); color: var(--red); }
+    .toc-item:nth-child(6) .toc-num { background: rgba(63,185,80,0.15); color: var(--green); }
+
+    .scroll-hint {
+      position: absolute;
+      bottom: 32px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-3);
+      font-size: 12px;
+      animation: bounce 2s ease-in-out infinite;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateX(-50%) translateY(0); }
+      50% { transform: translateX(-50%) translateY(6px); }
+    }
+
+    .section {
+      padding: 80px 24px;
+      max-width: 900px;
+      margin: 0 auto;
+      scroll-margin-top: 32px;
+    }
+
+    .section-num {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 12px;
+    }
+
+    .section h2 {
+      font-size: clamp(24px, 4vw, 36px);
+      font-weight: 800;
+      margin-bottom: 12px;
+      line-height: 1.2;
+    }
+
+    .section-desc {
+      color: var(--text-2);
+      font-size: 16px;
+      margin-bottom: 40px;
+      max-width: 680px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+      margin-bottom: 20px;
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card p {
+      color: var(--text-2);
+      font-size: 14px;
+      line-height: 1.75;
+    }
+
+    .icon {
+      width: 20px; height: 20px;
+      flex-shrink: 0;
+    }
+
+    .token-demo {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+      margin-bottom: 24px;
+      overflow-x: auto;
+    }
+
+    .token-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .token {
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 500;
+      white-space: nowrap;
+      transition: transform 0.15s;
+      cursor: default;
+    }
+
+    .token:hover { transform: scale(1.08); }
+
+    .token-word { background: rgba(88,166,255,0.12); border: 1px solid rgba(88,166,255,0.3); color: var(--accent); }
+    .token-sub { background: rgba(63,185,80,0.12); border: 1px solid rgba(63,185,80,0.3); color: var(--green); font-size: 11px; }
+    .token-char { background: rgba(210,153,34,0.12); border: 1px solid rgba(210,153,34,0.3); color: var(--orange); font-size: 11px; padding: 6px 8px; }
+
+    .token-legend {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      font-size: 12px;
+      color: var(--text-3);
+    }
+
+    .token-legend span {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .token-legend .dot {
+      width: 10px; height: 10px;
+      border-radius: 3px;
+    }
+
+    .tok-flow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      flex-wrap: wrap;
+      margin: 24px 0;
+    }
+
+    .tok-step {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      text-align: center;
+      min-width: 140px;
+    }
+
+    .tok-step .step-title {
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .tok-step .step-ex {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text-3);
+    }
+
+    .tok-arrow {
+      width: 40px;
+      height: 2px;
+      background: var(--border);
+      position: relative;
+      margin: 0 4px;
+    }
+
+    .tok-arrow::after {
+      content: '';
+      position: absolute;
+      left: 100%;
+      top: -4px;
+      border: 5px solid transparent;
+      border-left-color: var(--border);
+    }
+
+    .kv-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .kv-card {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 22px;
+    }
+
+    .kv-card h4 {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .kv-card p {
+      font-size: 13px;
+      color: var(--text-2);
+      line-height: 1.65;
+    }
+
+    .kv-badge {
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 100px;
+      font-weight: 600;
+    }
+
+    .attn-matrix {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 24px;
+      overflow-x: auto;
+    }
+
+    .attn-label {
+      font-size: 11px;
+      color: var(--text-3);
+      margin-bottom: 8px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .attn-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .attn-from {
+      font-size: 11px;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-3);
+      width: 48px;
+      text-align: left;
+      flex-shrink: 0;
+    }
+
+    .attn-cells {
+      display: flex;
+      gap: 4px;
+    }
+
+    .attn-cell {
+      width: 28px;
+      height: 28px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 600;
+      font-family: 'JetBrains Mono', monospace;
+      flex-shrink: 0;
+    }
+
+    .attn-to {
+      font-size: 11px;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-3);
+      width: 48px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .rope-diagram {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+
+    .rope-visual {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin: 20px 0;
+    }
+
+    .rope-block {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 20px;
+      text-align: center;
+    }
+
+    .rope-block .label {
+      font-size: 12px;
+      color: var(--text-3);
+      margin-bottom: 4px;
+    }
+
+    .rope-block .val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .rope-arrow {
+      font-size: 20px;
+      color: var(--text-3);
+    }
+
+    .vdb-diagram {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+      margin-bottom: 24px;
+    }
+
+    .vdb-search {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .vdb-query {
+      background: rgba(88,166,255,0.1);
+      border: 1px solid rgba(88,166,255,0.3);
+      border-radius: 10px;
+      padding: 14px 20px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: var(--accent);
+    }
+
+    .vdb-vs {
+      color: var(--text-3);
+      font-size: 20px;
+    }
+
+    .vdb-results {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .vdb-result {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 13px;
+    }
+
+    .vdb-score {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      padding: 3px 10px;
+      border-radius: 100px;
+      font-weight: 600;
+      margin-right: auto;
+    }
+
+    .score-hi { background: rgba(63,185,80,0.15); color: var(--green); }
+    .score-md { background: rgba(210,153,34,0.15); color: var(--orange); }
+    .score-lo { background: rgba(248,81,73,0.1); color: var(--red); }
+
+    .inf-flow {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      margin-bottom: 24px;
+    }
+
+    .inf-step {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+
+    .inf-num {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 14px;
+      flex-shrink: 0;
+      position: relative;
+      z-index: 1;
+    }
+
+    .inf-content {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px 22px;
+      flex: 1;
+      margin-bottom: 12px;
+    }
+
+    .inf-content h4 {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .inf-content p {
+      font-size: 13px;
+      color: var(--text-2);
+      line-height: 1.65;
+    }
+
+    .inf-timeline {
+      width: 2px;
+      background: var(--border);
+      margin: 4px 0 4px 17px;
+      align-self: stretch;
+    }
+
+    .code-block {
+      background: #010409;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin: 16px 0;
+      overflow-x: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      line-height: 1.7;
+      direction: ltr;
+      text-align: left;
+    }
+
+    .code-block .comment { color: #8b949e; }
+    .code-block .keyword { color: #ff7b72; }
+    .code-block .string { color: #a5d6ff; }
+    .code-block .func { color: #d2a8ff; }
+    .code-block .num { color: #79c0ff; }
+    .code-block .op { color: #ff7b72; }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .stat-box {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px;
+      text-align: center;
+    }
+
+    .stat-val {
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+
+    .stat-lbl {
+      font-size: 12px;
+      color: var(--text-3);
+    }
+
+    .cmp-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 24px;
+      font-size: 13px;
+    }
+
+    .cmp-table th {
+      text-align: right;
+      padding: 12px 16px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      font-weight: 700;
+      font-size: 12px;
+      color: var(--text-2);
+    }
+
+    .cmp-table td {
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      color: var(--text-2);
+    }
+
+    .cmp-table tr:hover td {
+      background: rgba(88,166,255,0.03);
+    }
+
+    .callout {
+      background: rgba(88,166,255,0.06);
+      border: 1px solid rgba(88,166,255,0.2);
+      border-radius: 12px;
+      padding: 18px 20px;
+      margin: 20px 0;
+      font-size: 14px;
+      color: var(--text-2);
+    }
+
+    .callout strong {
+      color: var(--accent);
+    }
+
+    .section-divider {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    .section-divider hr {
+      border: none;
+      border-top: 1px solid var(--border);
+    }
+
+    .nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: rgba(13,17,23,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      z-index: 100;
+      padding: 0 24px;
+    }
+
+    .nav-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      height: 52px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .nav-inner::-webkit-scrollbar { display: none; }
+
+    .nav-link {
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-3);
+      text-decoration: none;
+      white-space: nowrap;
+      transition: all 0.15s;
+      border: 1px solid transparent;
+    }
+
+    .nav-link:hover, .nav-link.active {
+      color: var(--text);
+      background: var(--surface);
+      border-color: var(--border);
+    }
+
+    .nav-dot {
+      width: 4px; height: 4px;
+      border-radius: 50%;
+      background: var(--text-3);
+      flex-shrink: 0;
+    }
+
+    @media (max-width: 640px) {
+      .hero-toc { grid-template-columns: 1fr; }
+      .nav { padding: 0 16px; }
+      .section { padding: 60px 16px; }
+      .card { padding: 20px; }
+      .tok-flow { gap: 8px; }
+      .tok-arrow { display: none; }
+      .attn-cell { width: 22px; height: 22px; font-size: 9px; }
+    }
+
+    html { scroll-behavior: smooth; }
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="#hero" class="nav-link active">الرئيسية</a>
+    <div class="nav-dot"></div>
+    <a href="#token" class="nav-link">ما هو الـ Token؟</a>
+    <div class="nav-dot"></div>
+    <a href="#cost" class="nav-link">التكلفة والفواتير</a>
+    <div class="nav-dot"></div>
+    <a href="#embedding" class="nav-link">Embeddings</a>
+    <div class="nav-dot"></div>
+    <a href="#vdb" class="nav-link">قواعد البيانات المتجهية</a>
+    <div class="nav-dot"></div>
+    <a href="#attention" class="nav-link">Attention</a>
+    <div class="nav-dot"></div>
+    <a href="#inference" class="nav-link">الاستدلال</a>
+  </div>
+</nav>
+
+<section class="hero" id="hero">
+  <div class="hero-badge">
+    <span class="dot"></span>
+    Deep Dive — Large Language Models
+  </div>
+  <h1>6 أدلة أساسية لفهم<br><span>كيف تعمل نماذج اللغة الكبيرة</span></h1>
+  <p>رحلة تقنية من الـ Tokens الأولى إلى الإجابة النهائية — بدون لغو، كل شيء بالتفصيل.</p>
+
+  <div class="hero-toc">
+    <a href="#token" class="toc-item"><span class="toc-num">01</span> ما هو الـ Token؟</a>
+    <a href="#cost" class="toc-item"><span class="toc-num">02</span> التكلفة والفواتير</a>
+    <a href="#embedding" class="toc-item"><span class="toc-num">03</span> Embeddings و RoPE</a>
+    <a href="#vdb" class="toc-item"><span class="toc-num">04</span> قواعد البيانات المتجهية</a>
+    <a href="#attention" class="toc-item"><span class="toc-num">05</span> Attention و QKV</a>
+    <a href="#inference" class="toc-item"><span class="toc-num">06</span> عملية الاستدلال</a>
+  </div>
+
+  <div class="scroll-hint">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+    ابدأ القراءة
+  </div>
+</section>
+
+<div class="section-divider"><hr></div>
+
+<section class="section" id="token">
+  <div class="section-num">الدليل 01 / 06</div>
+  <h2>ما هو الـ Token؟</h2>
+  <p class="section-desc">الـ Token هو الوحدة الأساسية التي يفهمها النموذج. ليس حرفًا وليس كلمة — بل شيء بينهما.</p>
+
+  <div class="token-demo">
+    <div class="token-legend">
+      <span><span class="dot" style="background:rgba(88,166,255,0.3)"></span> كلمة كاملة (Word-level)</span>
+      <span><span class="dot" style="background:rgba(63,185,80,0.3)"></span> جزء من كلمة (Subword / BPE)</span>
+      <span><span class="dot" style="background:rgba(210,153,34,0.3)"></span> حرف (Character-level)</span>
+    </div>
+  </div>
+
+  <div class="tok-flow">
+    <div class="tok-step">
+      <div class="step-title">النص الأصلي</div>
+      <div class="step-ex">"الذكاء الاصطناعي"</div>
+    </div>
+    <div class="tok-arrow"></div>
+    <div class="tok-step">
+      <div class="step-title">Tokenization</div>
+      <div class="step-ex">خوارزمية الـ Tokenizer</div>
+    </div>
+    <div class="tok-arrow"></div>
+    <div class="tok-step">
+      <div class="step-title">Token IDs</div>
+      <div class="step-ex">[42, 1089, 3521, 77]</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+      كيف يفكر النموذج في الـ Token
+    </div>
+    <p>النموذج لا يرى النص كنص — يراه كمتتالية أرقام. كل token له رقم تعريف (ID) فريد في مفردات النموذج (Vocabulary). كلمة واحدة قد تكون token واحد، أو عدة tokens. هذا يعتمد على خوارزمية الـ Tokenizer المستخدمة.</p>
+  </div>
+
+  <div class="token-demo">
+    <div style="font-size:13px;color:var(--text-2);margin-bottom:12px;font-weight:600;">مثال توضيحي: تقسيم الجملة</div>
+    <div class="token-row" style="margin-bottom:8px;">
+      <span class="token token-word">الذكاء</span>
+      <span class="token token-word">الاصطناعي</span>
+      <span class="token token-word">يغير</span>
+      <span class="token token-word">العالم</span>
+    </div>
+    <div class="token-row">
+      <span class="token token-sub">un</span>
+      <span class="token token-sub">believe</span>
+      <span class="token token-sub">able</span>
+      <span class="token token-sub">!</span>
+    </div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-box">
+      <div class="stat-val" style="color:var(--green)">1 token ≈</div>
+      <div class="stat-lbl">≈ 4 أحرف إنجليزي أو ¾ كلمة</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-val" style="color:var(--accent)">~100K</div>
+      <div class="stat-lbl">حجم مفردات GPT-4</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-val" style="color:var(--purple)">50-150K</div>
+      <div class="stat-lbl">حجم مفردات Llama 3</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-val" style="color:var(--orange)">BPE</div>
+      <div class="stat-lbl">خوارزمية التقسيم الأشهر</div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <strong>ملاحظة مهمة:</strong> اللغات المختلفة تحتاج عددًا مختلفًا من الـ Tokens لنفس النص. النص الإنجليزي عادةً أكثر كفاءة (كلمات أقل) بينما العربية والCJK تحتاج tokens أكثر.
+  </div>
+
+  <div class="code-block">
+<span class="comment"># كيف يحول Tokenizer النص إلى أرقام</span>
+<span class="keyword">from</span> transformers <span class="keyword">import</span> AutoTokenizer
+
+tokenizer <span class="op">=</span> AutoTokenizer.from_pretrained(<span class="string">"meta-llama/Llama-3"</span>)
+
+text <span class="op">=</span> <span class="string">"الذكاء الاصطناعي"</span>
+tokens <span class="op">=</span> tokenizer.encode(text)
+
+<span class="func">print</span>(tokens)          <span class="comment"># [42, 1089, 3521, 77]</span>
+<span class="func">print</span>(<span class="func">len</span>(tokens))    <span class="comment"># 4 tokens</span>
+  </div>
+</section>
+
+<div class="section-divider"><hr></div>
+
+<section class="section" id="cost">
+  <div class="section-num">الدليل 02 / 06</div>
+  <h2>كيف يؤثر تصنيف الـ Tokens على التكلفة؟</h2>
+  <p class="section-desc">كل طلب للنموذج يحسب على أساس عدد الـ Tokens المدخلة والمُخرجة — وهذا يؤثر مباشرة على فاتورتك.</p>
+
+  <div class="stats-row">
+    <div class="stat-box">
+      <div class="stat-val" style="color:var(--accent)">$0.03</div>
+      <div class="stat-lbl">لكل 1K input tokens — GPT-4o</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-val" style="color:var(--green)">$0.06</div>
+      <div class="stat-lbl">لكل 1K output tokens — GPT-4o</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-val" style="color:var(--purple)">$0</div>
+      <div class="stat-lbl">لتكاليف التخزين أو الذاكرة</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-val" style="color:var(--orange)">Context</div>
+      <div class="stat-lbl">حد أقصى للاستدعاء الواحد</div>
+    </div>
+  </div>
+
+  <table class="cmp-table">
+    <thead>
+      <tr>
+        <th>عامل التأثير</th>
+        <th>التأثير على التكلفة</th>
+        <th>كيفية التحسين</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>طول النص المدخل</td>
+        <td>يتناسب طردًا مع عدد الـ Tokens</td>
+        <td>تقصير الـ System Prompt، حذف المحادثات القديمة</td>
+      </tr>
+      <tr>
+        <td>طول الإجابة</td>
+        <td>غالبًا أغلى (سعر أعلى per token)</td>
+        <td>وضع حدود max_tokens، تحسين الـ Prompts</td>
+      </tr>
+      <tr>
+        <td>حجم الـ Context</td>
+        <td>تكلفة ثابتة بغض النظر عن الاستخدام</td>
+        <td>اختيار نموذج بحجم context مناسب</td>
+      </tr>
+      <tr>
+        <td>لغة النص</td>
+        <td>العربية/CJK تحتاج tokens أكثر</td>
+        <td>استخدام نماذج محسّنة للغات معينة</td>
+      </tr>
+      <tr>
+        <td>نموذج متعدد الوسائط</td>
+        <td>تكلفة إضافية للصور</td>
+        <td>ضغط الصور قبل الإرسال إن أمكن</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <strong>حساب عملي:</strong> لو أرسلت 2000 token وأجبت بـ 500 token باستخدام GPT-4o:<br>
+    التكلفة = (2 × $0.03) + (0.5 × $0.06) = $0.09 للطلب الواحد.<br>
+    لو استخدمت 10,000 طلب يوميًا = $900 شهريًا.
+  </div>
+
+  <div class="card">
+    <div class="card-title">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+      نصيحة لتوفير التكلفة
+    </div>
+    <p>استخدم <strong>Streaming</strong> لتجربة ردود النموذج أثناء الكتابة وتوقف مبكرًا إن لم تعد الإجابة مفيدة. وأيضًا: الـ Caching — بعض مقدمي الخدمة يحفظون الردود المتكررة لتجنب إعادة الحساب.</p>
+  </div>
+</section>
+
+<div class="section-divider"><hr></div>
+
+<section class="section" id="embedding">
+  <div class="section-num">الدليل 03 / 06</div>
+  <h2>Embeddings وكيفية عمل RoPE</h2>
+  <p class="section-desc">كل كلمة أو token تُحوَّل إلى متجه رياضي (Embedding) — قائمة أرقام تفهمها الآلة فقط. لكن كيف يحتفظ النموذج بموقع كل كلمة في الجملة؟</p>
+
+  <div class="card">
+    <div class="card-title">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+      ما هو Embedding؟
+    </div>
+    <p>Embedding هو تمثيل رقمي للنص داخل فضاء متعدد الأبعاد. الكلمات المتشابهة في المعنى تكون قريبة في هذا الفضاء. مثال: "ملك" و"ملكة" تكون المسافة بينهما أقل من المسافة بين "ملك" و"سيارة".</p>
+  </div>
+
+  <div class="rope-diagram">
+    <div style="font-size:14px;font-weight:700;margin-bottom:4px;">من Token إلى Vector</div>
+    <div style="font-size:13px;color:var(--text-3);margin-bottom:20px;">كلمات → أرقام → فضاء متجهي</div>
+    <div class="rope-visual">
+      <div class="rope-block">
+        <div class="label">Input</div>
+        <div class="val" style="color:var(--accent)">"الذكاء"</div>
+      </div>
+      <div class="rope-arrow">→</div>
+      <div class="rope-block">
+        <div class="label">Token ID</div>
+        <div class="val" style="color:var(--green)">[3521]</div>
+      </div>
+      <div class="rope-arrow">→</div>
+      <div class="rope-block">
+        <div class="label">Embedding</div>
+        <div class="val" style="color:var(--purple)">[-0.23, 0.81, ...]</div>
+      </div>
+      <div class="rope-arrow">→</div>
+      <div class="rope-block">
+        <div class="label">4,096 عدد</div>
+        <div class="val" style="color:var(--orange)">Vector</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      RoPE: الترميز الدوراني للموضع
+    </div>
+    <p>
+      <strong>RoPE (Rotary Position Embedding)</strong> هو التقنية التي يستخدمها معظم النماذج الحديثة (Llama, Mistral, Falcon) لتضمين معلومات الموضع في المتجهات. الفكرة بسيطة وأنيقة: <strong>نستخدم دورانًا رياضيًا</strong> بدلاً من جمع أو ضرب مباشر لمتجهات الموضع.
+    </p>
+    <p style="margin-top:10px;">
+      بدلًا من إضافة رقم موضع إلى كل بُعد، نُدوِّر المتجه بزاوية تتناسب مع موقع الكلمة في الجملة. هذا يسمح للنموذج بالتعامل مع جمل أطول بكثير مع حسابات أقل.
+    </p>
+  </div>
+
+  <div class="code-block">
+<span class="comment"># حساب زاوية RoPE لبُعد معين</span>
+<span class="keyword">import</span> numpy <span class="keyword">as</span> np
+
+<span class="comment"># أبعاد embedding النموذج</span>
+dim <span class="op">=</span> <span class="num">4096</span>
+theta <span class="op">=</span> <span class="num">10000.0</span>
+
+<span class="comment"># ترددات مختلفة لكل بُعد (أزواج من الأبعاد)</span>
+freqs <span class="op">=</span> <span class="num">1.0</span> / (theta <span class="op">**</span> (np.arange(<span class="num">0</span>, dim, <span class="num">2</span>) / dim))
+
+<span class="comment"># موقع الكلمة رقم 100 في الجملة</span>
+pos <span class="op">=</span> <span class="num">100</span>
+angles <span class="op">=</span> pos <span class="op">*</span> freqs
+
+<span class="func">print</span>(<span class="string">f"زاوية البُعد 0: {angles[<span class="num">0</span>]:.4f} راد"</span>)
+<span class="comment"># تُستخدم لتدوير متجه embedding — الحفاظ على معلومات الموضع</span>
+  </div>
+
+  <div class="callout">
+    <strong>RoPE vs Attention Masks:</strong> قبل RoPE، كانت النماذج تستخدم Absolute Position Embeddings (متجهات موضع مطلقة) أو Relative Position Embeddings (متجهات موضع نسبية). RoPE يتفوق عليها لأنه يعالج الترتيب بشكل دوراني مما يوفر:
+    <p style="margin-top:8px;">• أطوال context أكبر ( Llama 3 يدعم 128K tokens)</p>
+    <p style="margin-top:4px;">• حسابات أقل بفضل عدم إضافة مصفوفات جديدة</p>
+    <p style="margin-top:4px;">• استدلال أسرع (fewer parameters to compute)</p>
+  </div>
+</section>
+
+<div class="section-divider"><hr></div>
+
+<section class="section" id="vdb">
+  <div class="section-num">الدليل 04 / 06</div>
+  <h2>قواعد البيانات المتجهية الذكية</h2>
+  <p class="section-desc">RAG (Retrieval-Augmented Generation) يبدأ من هنا — تحويل المستندات إلى متجهات والبحث عنها ذكيًا.</p>
+
+  <div class="vdb-diagram">
+    <div style="font-size:14px;font-weight:700;margin-bottom:20px;">كيف يعمل Semantic Search</div>
+    <div class="vdb-search">
+      <div class="vdb-query">"نص البحث"</div>
+      <div class="vdb-vs">≈</div>
+      <div class="vdb-query">متجه الاستعلام</div>
+      <div class="vdb-vs">→</div>
+      <div class="vdb-query">Cosine Similarity</div>
+    </div>
+
+    <div class="vdb-results">
+      <div class="vdb-result">
+        <span>📄 المستند الأول — عن الذكاء الاصطناعي</span>
+        <span class="vdb-score score-hi">0.94</span>
+      </div>
+      <div class="vdb-result">
+        <span>📄 المستند الثاني — تعلم الآلة</span>
+        <span class="vdb-score score-md">0.87</span>
+      </div>
+      <div class="vdb-result">
+        <span>📄 المستند الثالث — الشبكات العصبية</span>
+        <span class="vdb-score score-lo">0.76</span>
+      </div>
+      <div class="vdb-result">
+        <span>📄 المستند الرابع — الطهي</span>
+        <span class="vdb-score score-lo">0.31</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+      ما الفرق بين قاعدة بيانات عادية و Vector DB؟
+    </div>
+    <p>
+      قاعدة البيانات العادية تبحث بـ <strong>تطابق تام</strong> (WHERE name = "أحمد"). قاعدة البيانات المتجهية تبحث بـ <strong>التشابه الدلالي</strong> — تجد النصوص التي تعني نفس الشيء حتى لو الصياغة مختلفة تمامًا.
+    </p>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-box">
+      <div class="stat-val" style="color:var(--accent)">HNSW</div>
+      <div class="stat-lbl">خوارزمية الفهرسة الأهم</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-val" style="color:var(--green)">Cosine</div>
+      <div class="stat-lbl">مقياس التشابه الأشهر</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-val" style="color:var(--purple)">1M+</div>
+      <div class="stat-lbl">متجهات/ثانية (Pinecone)</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-val" style="color:var(--orange)">1536</div>
+      <div class="stat-lbl">أبعاد embedding OpenAI</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+      Agentic Vector Databases — الجيل التالي
+    </div>
+    <p>
+      <strong>Agentic</strong> تعني أن قاعدة البيانات لا تكتفي بالبحث — بل تتخذ قرارات. مثال: عند سؤال "ما أفضل استراتيجية تسويق؟"، قاعدة البيانات الوكيلية قد:
+    </p>
+    <p style="margin-top:8px;">1. تُقسّم السؤال إلى استعلامات متعددة</p>
+    <p style="margin-top:4px;">2. تنفذها بالتوازي على مجموعات مختلفة</p>
+    <p style="margin-top:4px;">3. تدمج النتائج وتُعيد ترتيبها حسب الصلة</p>
+    <p style="margin-top:8px;">هذا يُحاكي كيف يعمل assistant ذكي حقيقي.</p>
+  </div>
+
+  <div class="code-block">
+<span class="comment"># إنشاء وقراءة من Vector DB (Pinecone)</span>
+<span class="keyword">import</span> pinecone, openai
+
+pc <span class="op">=</span> pinecone.Pinecone(api_key<span class="op">=</span><span class="string">"your-key"</span>)
+index <span class="op">=</span> pc.Index(<span class="string">"knowledge-base"</span>)
+
+<span class="comment"># 1) تحويل السؤال إلى متجه</span>
+query <span class="op">=</span> <span class="string">"ما هي أعراض السكري؟"</span>
+response <span class="op">=</span> openai.Embedding.create(
+    model<span class="op">=</span><span class="string">"text-embedding-3-small"</span>,
+    input<span class="op">=</span>query
+)
+query_vector <span class="op">=</span> response[<span class="string">'data'</span>][<span class="num">0</span>][<span class="string">'embedding'</span>]
+
+<span class="comment"># 2) البحث في قاعدة البيانات</span>
+results <span class="op">=</span> index.query(
+    vector<span class="op">=</span>query_vector,
+    top_k<span class="op">=</span><span class="num">5</span>,
+    include_metadata<span class="op">=</span><span class="keyword">True</span>
+)
+
+<span class="comment"># 3) إرسال النتائج للنموذج مع السؤال</span>
+<span class="keyword">for</span> match <span class="keyword">in</span> results[<span class="string">'matches'</span>]:
+    <span class="func">print</span>(match[<span class="string">'metadata'</span>][<span class="string">'text'</span>])
+  </div>
+</section>
+
+<div class="section-divider"><hr></div>
+
+<section class="section" id="attention">
+  <div class="section-num">الدليل 05 / 06</div>
+  <h2>آلية Attention ومفاهيم QKV وKV Cache</h2>
+  <p class="section-desc">قلب النماذج اللغوية — كيف "تنتبه" الآلة لكل كلمة في سياق الكلمات الأخرى.</p>
+
+  <div class="attn-matrix">
+    <div class="attn-label">Self-Attention Matrix (4 كلمات)</div>
+    <div class="attn-row">
+      <div class="attn-to"></div>
+      <div class="attn-cells" style="padding-right:48px;">
+        <div class="attn-cell" style="background:rgba(88,166,255,0.05);color:var(--text-3);">الـ</div>
+        <div class="attn-cell" style="background:rgba(88,166,255,0.05);color:var(--text-3);">ذكاء</div>
+        <div class="attn-cell" style="background:rgba(88,166,255,0.05);color:var(--text-3);">الذي</div>
+        <div class="attn-cell" style="background:rgba(88,166,255,0.05);color:var(--text-3);">يتعلم</div>
+      </div>
+    </div>
+    <div class="attn-row">
+      <div class="attn-from">الـ</div>
+      <div class="attn-cells">
+        <div class="attn-cell" style="background:rgba(88,166,255,0.7);color:#0d1117;">0.9</div>
+        <div class="attn-cell" style="background:rgba(88,166,255,0.15);color:var(--accent);">0.05</div>
+        <div class="attn-cell" style="background:rgba(88,166,255,0.03);color:var(--text-3);">0.03</div>
+        <div class="attn-cell" style="background:rgba(88,166,255,0.02);color:var(--text-3);">0.02</div>
+      </div>
+    </div>
+    <div class="attn-row">
+      <div class="attn-from">ذكاء</div>
+      <div class="attn-cells">
+        <div class="attn-cell" style="background:rgba(88,166,255,0.15);color:var(--accent);">0.1</div>
+        <div class="attn-cell" style="background:rgba(88,166,255,0.7);color:#0d1117;">0.7</div>
+        <div class="attn-cell" style="background:rgba(88,166,255,0.12);color:var(--accent);">0.12</div>
+        <div class="attn-cell" style="background:rgba(88,166,255,0.08);color:var(--text-3);">0.08</div>
+      </div>
+    </div>
+    <div class="attn-row">
+      <div class="attn-from">الذي</div>
+      <div class="attn-cells">
+        <div class="attn-cell" style="background:rgba(88,166,255,0.08);color:var(--text-3);">0.05</div>
+        <div class="attn-cell" style="background:rgba(88,166,255,0.15);color:var(--accent);">0.1</div>
+        <div class="attn-cell" style="background:rgba(88,166,255,0.65);color:#0d1117;">0.65</div>
+        <div class="attn-cell" style="background:rgba(88,166,255,0.2);color:var(--accent);">0.2</div>
+      </div>
+    </div>
+    <div class="attn-row">
+      <div class="attn-from">يتعلم</div>
+      <div class="attn-cells">
+        <div class="attn-cell" style="background:rgba(88,166,255,0.03);color:var(--text-3);">0.02</div>
+        <div class="attn-cell" style="background:rgba(88,166,255,0.1);color:var(--text-3);">0.05</div>
+        <div class="attn-cell" style="background:rgba(88,166,255,0.15);color:var(--accent);">0.1</div>
+        <div class="attn-cell" style="background:rgba(88,166,255,0.73);color:#0d1117;">0.83</div>
+      </div>
+    </div>
+    <div style="font-size:11px;color:var(--text-3);margin-top:12px;">
+      كل خلية تُمثّل مقدار "الانتباه" الذي تولّده الكلمة في الصف نحو الكلمة في العمود. القيمة العالية (غامق) = علاقة قوية.
+    </div>
+  </div>
+
+  <div class="kv-grid">
+    <div class="kv-card">
+      <h4><span class="kv-badge" style="background:rgba(63,185,80,0.15);color:var(--green);">Q</span> Query — الاستعلام</h4>
+      <p>"ماذا أبحث عنه؟" — كل token يسأل سؤالًا عن الكلمات الأخرى. يمثل اهتمام/احتياج هذا الـ token.</p>
+    </div>
+    <div class="kv-card">
+      <h4><span class="kv-badge" style="background:rgba(88,166,255,0.15);color:var(--accent);">K</span> Key — المفتاح</h4>
+      <p>"ماذا أقدم؟" — كل token يعرض نفسه كمحتوى. يُستخدم للمقارنة مع الـ Queries.</p>
+    </div>
+    <div class="kv-card">
+      <h4><span class="kv-badge" style="background:rgba(188,140,255,0.15);color:var(--purple);">V</span> Value — القيمة</h4>
+      <p>"ما هي المعلومات الفعلية؟" — المحتوى الحقيقي لكل token. هذا ما يُستخدم لحساب المخرجات.</p>
+    </div>
+    <div class="kv-card">
+      <h4><span class="kv-badge" style="background:rgba(210,153,34,0.15);color:var(--orange);">Cache</span> KV Cache</h4>
+      <p>تخزين الـ K و V المحسوبين سابقًا لتجنب إعادة حسابهم في كل خطوة. هذا يوفر ~50% من وقت الاستدلال.</p>
+    </div>
+  </div>
+
+  <div class="callout">
+    <strong>Multi-Head Attention:</strong> النماذج الحديثة لا تستخدم attention واحد، بل dozens متوازية (عادة 32 أو 64 head). كل head يتعلم علاقات مختلفة — واحد للتركيب النحوي، آخر للمعنى، ثالث للعلاقات المنطقية.
+  </div>
+
+  <div class="code-block">
+<span class="comment"># Self-Attention بشكل مبسط</span>
+<span class="keyword">import</span> torch.nn.functional <span class="keyword">as</span> F
+
+<span class="keyword">def</span> <span class="func">self_attention</span>(Q, K, V, scale<span class="op">=</span><span class="keyword">True</span>):
+    <span class="comment"># 1) حساب التشابه بين Q و K</span>
+    scores <span class="op">=</span> torch.matmul(Q, K.transpose(<span class="op">-</span><span class="num">2</span>, <span class="op">-</span><span class="num">1</span>))
+
+    <span class="comment"># 2) تطبيع</span>
+    <span class="keyword">if</span> scale:
+        scores <span class="op">=</span> scores <span class="op">/</span> (K.size(<span class="op">-</span><span class="num">1</span>) <span class="op">**</span> <span class="num">0.5</span>)
+
+    <span class="comment"># 3) Softmax للحصول على أوزان الانتباه</span>
+    attn_weights <span class="op">=</span> F.softmax(scores, dim<span class="op">=-</span><span class="num">1</span>)
+
+    <span class="comment"># 4) حساب المخرجات المرجّحة</span>
+    <span class="keyword">return</span> torch.matmul(attn_weights, V), attn_weights
+  </div>
+</section>
+
+<div class="section-divider"><hr></div>
+
+<section class="section" id="inference">
+  <div class="section-num">الدليل 06 / 06</div>
+  <h2>من الـ Tokens إلى الإجابات: الاستدلال</h2>
+  <p class="section-desc">ماذا يحدث بالضبط بين لحظة إرسال سؤالك وظهور أول حرف من الإجابة؟</p>
+
+  <div class="inf-flow">
+    <div class="inf-step">
+      <div class="inf-num">1</div>
+      <div class="inf-content">
+        <h4>Tokenization — تقسيم النص</h4>
+        <p>النص يُقسَّم إلى tokens باستخدام الـ Tokenizer. كل كلمة أو جزء كلمة يصبح token برقم ID فريد. الـ System Prompt والـ User Message يُجمَّعا معًا.</p>
+      </div>
+    </div>
+    <div class="inf-timeline"></div>
+
+    <div class="inf-step">
+      <div class="inf-num">2</div>
+      <div class="inf-content">
+        <h4>Embedding Layer — التحويل إلى أرقام</h4>
+        <p>كل Token ID يُحوَّل إلى متجه embedding عالي الأبعاد (مثلاً 4096 بُعد). هذا المتجه يحمل المعنى الدلالي للكلمة.</p>
+      </div>
+    </div>
+    <div class="inf-timeline"></div>
+
+    <div class="inf-step">
+      <div class="inf-num">3</div>
+      <div class="inf-content">
+        <h4>Transformer Layers — الطبقات المتتالية</h4>
+        <p>المتجهات تمر عبر dozens من Transformer Layers. كل طبقة فيها: Multi-Head Attention → Feed-Forward Network. الـ RoPE يضيف معلومات الموضع تلقائيًا.</p>
+      </div>
+    </div>
+    <div class="inf-timeline"></div>
+
+    <div class="inf-step">
+      <div class="inf-num">4</div>
+      <div class="inf-content">
+        <h4>Output Head — التنبؤ بالـ Token التالي</h4>
+        <p>آخر طبقة تخرج توزيع احتمالات على كل الـ tokens في المفردات. النموذج يختار الـ token صاحب أعلى احتمال (greedy) أو يستخدم sampling.</p>
+      </div>
+    </div>
+    <div class="inf-timeline"></div>
+
+    <div class="inf-step">
+      <div class="inf-num">5</div>
+      <div class="inf-content">
+        <h4>Decoding Loop — التوليد token بtoken</h4>
+        <p>الـ token المُنتَخب يُضاف إلى input، ثم تُعاد العملية. هذا loop يتكرر حتى يصل النموذج إلى token الإيقاف (EOS) أو الحد الأقصى للطول. Streaming يُرسل كل token فورًا للمستخدم.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-box">
+      <div class="stat-val" style="color:var(--accent)">70B</div>
+      <div class="stat-lbl">معاملات Llama 3 70B</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-val" style="color:var(--green)">~15ms</div>
+      <div class="stat-lbl">زمن أول token (GPU)</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-val" style="color:var(--purple)">~50ms</div>
+      <div class="stat-lbl">لكل token تالٍ</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-val" style="color:var(--orange)">KV Cache</div>
+      <div class="stat-lbl">يقلل time/token بنسبة 50%</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+      Speculative Decoding — الجيل القادم من الاستدلال
+    </div>
+    <p>
+      بدلاً من انتظار كل token، نموذج صغير (draft model) يتنبأ بعدة tokens دفعة واحدة، ثم النموذج الكبير يتحقق منها دفعة واحدة. إذا كان صحيحًا — وفرنا وقتًا. هذه التقنية تُسرّع الاستدلال بـ 2-3x.
+    </p>
+  </div>
+
+  <div class="callout">
+    <strong>الخلاصة:</strong> كل إجابة من LLM هي عملية تنبؤ إحصائية ضخمة — النموذج يحسب احتمال كل كلمة تالية بناءً على كل ما تعلمه أثناء التدريب. لا يوجد "فهم" بالمعنى البشري، بل أنماط إحصائية معقدة جدًا.
+  </div>
+</section>
+
+<script>
+  const sections = document.querySelectorAll('.section');
+  const navLinks = document.querySelectorAll('.nav-link');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(l => l.classList.remove('active'));
+        const id = entry.target.id;
+        const active = document.querySelector(`.nav-link[href="#${id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-40% 0px -40% 0px' });
+
+  sections.forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>
